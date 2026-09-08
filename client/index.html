@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LDRbooth</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="brand">
+      <h1>LDRbooth</h1>
+      <p class="tagline">a virtual photobooth for two</p>
+    </header>
+
+    <!-- Landing view -->
+    <section id="view-landing" class="view">
+      <div class="card">
+        <h2>Create a room</h2>
+        <p class="hint">Start a session and share the code with your partner.</p>
+        <button id="btn-create" class="primary">Create Room</button>
+      </div>
+      <div class="card">
+        <h2>Join a room</h2>
+        <p class="hint">Enter the code your partner sent you.</p>
+        <input id="input-code" maxlength="5" placeholder="ROOM CODE" autocapitalize="characters" autocomplete="off" />
+        <button id="btn-join" class="primary">Join Room</button>
+      </div>
+      <p id="landing-error" class="error" role="alert"></p>
+    </section>
+
+    <!-- Room / capture view -->
+    <section id="view-room" class="view hidden">
+      <div class="room-header">
+        <span>Room: <strong id="room-code-label"></strong></span>
+        <span id="status-label">Waiting for your partner&hellip;</span>
+      </div>
+
+      <div class="stage">
+        <div class="video-pair">
+          <div class="video-slot">
+            <video id="local-video" autoplay playsinline muted></video>
+            <span class="video-label" id="local-video-label">You</span>
+          </div>
+          <div class="video-slot">
+            <video id="remote-video" autoplay playsinline></video>
+            <span class="video-label" id="remote-video-label">Partner</span>
+            <div id="waiting-overlay" class="waiting-overlay">Waiting for partner to join&hellip;</div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div id="countdown" class="countdown hidden">3</div>
+          <button id="btn-snap" class="primary" disabled>Snap 📸</button>
+          <p id="slot-progress">Photo 1 of 4</p>
+        </div>
+
+        <div class="grid-preview">
+          <div class="grid-col">
+            <h3 id="grid-left-label">Host</h3>
+            <div class="grid-slots" id="grid-left"></div>
+          </div>
+          <div class="grid-col">
+            <h3 id="grid-right-label">Guest</h3>
+            <div class="grid-slots" id="grid-right"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Result view -->
+    <section id="view-result" class="view hidden">
+      <h2>Your strip is ready! 🎉</h2>
+      <div class="theme-picker">
+        <label for="theme-select">Background theme</label>
+        <select id="theme-select"></select>
+      </div>
+      <canvas id="final-canvas" width="640" height="1280"></canvas>
+      <div class="result-actions">
+        <a id="btn-download" class="primary" download="ldrbooth.png">Download</a>
+        <button id="btn-restart">Start Over</button>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="dist/main.js"></script>
+</body>
+</html>
