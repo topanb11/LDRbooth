@@ -25,6 +25,20 @@ from pydantic import BaseModel
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 CLIENT_DIR = BASE_DIR / "client"
+DIST_DIR = CLIENT_DIR / "dist"
+
+def ensure_frontend_built():
+    if not (DIST_DIR / "main.js").exists():
+        import subprocess
+        print("dist/main.js not found. Automatically compiling TypeScript frontend...")
+        try:
+            subprocess.run(["npm", "install"], cwd=str(CLIENT_DIR), check=True)
+            subprocess.run(["npm", "run", "build"], cwd=str(CLIENT_DIR), check=True)
+            print("Frontend TypeScript compiled successfully!")
+        except Exception as err:
+            print(f"Warning: Could not auto-compile frontend TypeScript: {err}")
+
+ensure_frontend_built()
 
 TOTAL_SLOTS = 4  # 4 rows; combined with the 2 people that's a 2x4 grid
 
