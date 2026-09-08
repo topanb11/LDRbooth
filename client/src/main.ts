@@ -1,14 +1,5 @@
-import { state, resetState, TOTAL_SLOTS } from "./state.js";
-import {
-  inputCode,
-  statusLabel,
-  waitingOverlay,
-  btnSnap,
-  slotProgress,
-  btnRestart,
-  landingError,
-} from "./dom.js";
-import { showView } from "./views.js";
+import { state, resetState } from "./state.js";
+import { btnRestart } from "./dom.js";
 import { initLandingHandlers } from "./landing.js";
 import { initSnapButton, initGridPlaceholders } from "./capture.js";
 import { initThemeDropdown } from "./composite.js";
@@ -20,19 +11,12 @@ initThemeDropdown();
 initGridPlaceholders();
 
 btnRestart.addEventListener("click", () => {
-  sendMessage({ type: "leave" });
-  state.ws?.close();
-  state.pc?.close();
-  state.localStream?.getTracks().forEach((t) => t.stop());
-
+  try {
+    sendMessage({ type: "leave" });
+    state.ws?.close();
+    state.pc?.close();
+    state.localStream?.getTracks().forEach((t) => t.stop());
+  } catch (_) {}
   resetState();
-
-  inputCode.value = "";
-  statusLabel.textContent = "Waiting for your partner…";
-  waitingOverlay.classList.remove("hidden");
-  btnSnap.disabled = true;
-  slotProgress.textContent = `Photo 1 of ${TOTAL_SLOTS}`;
-  initGridPlaceholders();
-  landingError.textContent = "";
-  showView("landing");
+  window.location.reload();
 });

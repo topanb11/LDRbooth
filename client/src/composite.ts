@@ -81,7 +81,12 @@ function drawPhotoCells(ctx: CanvasRenderingContext2D): void {
     pending -= 1;
     if (pending === 0) {
       drawDateFooter(ctx);
-      btnDownload.href = finalCanvas.toDataURL("image/png");
+      finalCanvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        btnDownload.href = url;
+        btnDownload.download = `ldrbooth-${new Date().toISOString().slice(0, 10)}.png`;
+      }, "image/png");
     }
   };
 
