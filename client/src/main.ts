@@ -1,5 +1,5 @@
 import { state, resetState } from "./state.js";
-import { btnRestart } from "./dom.js";
+import { btnRestart, btnLeave } from "./dom.js";
 import { initLandingHandlers } from "./landing.js";
 import { initSnapButton, initGridPlaceholders } from "./capture.js";
 import { initThemeDropdown } from "./composite.js";
@@ -11,6 +11,10 @@ initThemeDropdown();
 initGridPlaceholders();
 
 btnRestart.addEventListener("click", () => {
+  sendMessage({ type: "restart-session" });
+});
+
+btnLeave.addEventListener("click", () => {
   try {
     sendMessage({ type: "leave" });
     state.ws?.close();

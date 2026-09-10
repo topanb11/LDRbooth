@@ -42,7 +42,7 @@ ensure_frontend_built()
 
 TOTAL_SLOTS = 4  # 4 rows; combined with the 2 people that's a 2x4 grid
 
-app = FastAPI(title="LDRbooth")
+app = FastAPI(title="bubbagup")
 
 app.add_middleware(
     CORSMiddleware,
@@ -173,6 +173,12 @@ async def room_socket(websocket: WebSocket, code: str) -> None:
                             await broadcast(
                                 room, {"type": "slot-advance", "slot": room.current_slot}
                             )
+
+            elif msg_type == "restart-session":
+                room.current_slot = 0
+                room.countdown_active = False
+                room.acks_for_slot = set()
+                await broadcast(room, {"type": "session-reset"})
 
             elif msg_type == "leave":
                 break

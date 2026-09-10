@@ -15,6 +15,7 @@ export const landingError = byId<HTMLParagraphElement>("landing-error");
 export const viewRoom = byId<HTMLElement>("view-room");
 export const roomCodeLabel = byId<HTMLElement>("room-code-label");
 export const statusLabel = byId<HTMLElement>("status-label");
+export const btnLeave = byId<HTMLButtonElement>("btn-leave");
 export const localVideo = byId<HTMLVideoElement>("local-video");
 export const remoteVideo = byId<HTMLVideoElement>("remote-video");
 export const localVideoLabel = byId<HTMLElement>("local-video-label");

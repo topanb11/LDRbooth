@@ -8,6 +8,7 @@ export type ServerMessageType =
   | "countdown-start"
   | "slot-advance"
   | "session-complete"
+  | "session-reset"
   | "error";
 
 export interface ServerMessage {
@@ -18,7 +19,7 @@ export interface ServerMessage {
   message?: string;
 }
 
-export type ClientMessageType = "signal" | "start-snap" | "photo-ack" | "leave";
+export type ClientMessageType = "signal" | "start-snap" | "photo-ack" | "leave" | "restart-session";
 
 export interface ClientMessage {
   type: ClientMessageType;

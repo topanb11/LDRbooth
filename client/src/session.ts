@@ -1,5 +1,5 @@
 import type { ServerMessage } from "./types.js";
-import { state } from "./state.js";
+import { state, TOTAL_SLOTS } from "./state.js";
 import {
   roomCodeLabel,
   statusLabel,
@@ -16,7 +16,7 @@ import {
   createAndSendOffer,
   handleSignal,
 } from "./connection.js";
-import { applyRoleLabels, runCountdownAndCapture, updateSlotProgress } from "./capture.js";
+import { applyRoleLabels, runCountdownAndCapture, updateSlotProgress, initGridPlaceholders } from "./capture.js";
 import { finalizeSession } from "./composite.js";
 
 export async function enterRoom(code: string): Promise<void> {
@@ -31,7 +31,7 @@ export async function enterRoom(code: string): Promise<void> {
     });
   } catch {
     showView("landing");
-    landingError.textContent = "Camera access is required to use LDRbooth.";
+    landingError.textContent = "Camera access is required to use bubbagup.";
     return;
   }
   localVideo.srcObject = state.localStream;
@@ -90,6 +90,17 @@ async function handleServerMessage(msg: ServerMessage): Promise<void> {
     case "session-complete": {
       finalizeSession();
       showView("result");
+      break;
+    }
+
+    case "session-reset": {
+      state.currentSlot = 0;
+      state.photosHost = new Array(TOTAL_SLOTS).fill(null);
+      state.photosGuest = new Array(TOTAL_SLOTS).fill(null);
+      initGridPlaceholders();
+      updateSlotProgress();
+      btnSnap.disabled = !state.peerConnected;
+      showView("room");
       break;
     }
 

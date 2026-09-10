@@ -72,7 +72,7 @@ function drawTitle(ctx: CanvasRenderingContext2D, width: number): void {
   ctx.fillStyle = "#ff5da2";
   ctx.font = "bold 32px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("LDRbooth", width / 2, PADDING + 32);
+  ctx.fillText("bubbagup", width / 2, PADDING + 32);
 }
 
 function drawPhotoCells(ctx: CanvasRenderingContext2D): void {
@@ -85,7 +85,7 @@ function drawPhotoCells(ctx: CanvasRenderingContext2D): void {
         if (!blob) return;
         const url = URL.createObjectURL(blob);
         btnDownload.href = url;
-        btnDownload.download = `ldrbooth-${new Date().toISOString().slice(0, 10)}.png`;
+        btnDownload.download = `bubbagup-${new Date().toISOString().slice(0, 10)}.png`;
       }, "image/png");
     }
   };
