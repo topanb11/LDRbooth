@@ -21,6 +21,8 @@ export interface AppState {
   // These never leave the browser.
   clipsHost: (Blob | null)[];
   clipsGuest: (Blob | null)[];
+  /** Shared presentation timestamp for the still and moving strips. */
+  sessionDate: Date | null;
   selectedThemeId: string;
 }
 
@@ -37,6 +39,7 @@ function freshState(): AppState {
     photosGuest: new Array(TOTAL_SLOTS).fill(null),
     clipsHost: new Array(TOTAL_SLOTS).fill(null),
     clipsGuest: new Array(TOTAL_SLOTS).fill(null),
+    sessionDate: null,
     selectedThemeId: DEFAULT_THEME_ID,
   };
 }

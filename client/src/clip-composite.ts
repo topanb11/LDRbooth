@@ -1,6 +1,7 @@
 import { state, TOTAL_SLOTS } from "./state.js";
 import { THEMES, type Theme } from "./themes.js";
 import { btnDownloadGif, btnDownloadVideo, clipExportStatus, clipStrip } from "./dom.js";
+import { formatDate } from "./composite.js";
 
 const CELL_W = 300;
 const CELL_H = 225;
@@ -19,15 +20,27 @@ function currentTheme(): Theme {
   return THEMES.find((theme) => theme.id === state.selectedThemeId) ?? THEMES[0];
 }
 
-export function renderClipStrip(): void {
+export async function renderClipStrip(): Promise<void> {
   clearClipStrip();
+  clipStrip.style.backgroundImage = currentTheme().imagePath ? `url("${currentTheme().imagePath}")` : "none";
+  const title = document.createElement("div");
+  title.className = "clip-strip-title";
+  title.textContent = "digibooth";
+  clipStrip.appendChild(title);
+
+  const ready: Promise<void>[] = [];
   for (let row = 0; row < TOTAL_SLOTS; row++) {
-    appendPreviewCell(state.clipsHost[row]);
-    appendPreviewCell(state.clipsGuest[row]);
+    ready.push(appendPreviewCell(state.clipsHost[row]));
+    ready.push(appendPreviewCell(state.clipsGuest[row]));
   }
+  const date = document.createElement("div");
+  date.className = "clip-strip-date";
+  date.textContent = state.sessionDate ? formatDate(state.sessionDate) : "";
+  clipStrip.appendChild(date);
+  await Promise.all(ready);
 }
 
-function appendPreviewCell(clip: Blob | null): void {
+function appendPreviewCell(clip: Blob | null): Promise<void> {
   const cell = document.createElement("div");
   cell.className = "clip-cell";
   if (clip) {
@@ -40,19 +53,35 @@ function appendPreviewCell(clip: Blob | null): void {
     video.autoplay = true;
     video.playsInline = true;
     cell.appendChild(video);
-    video.play().catch(() => undefined);
+    clipStrip.appendChild(cell);
+    return waitForPreview(video).then(() => video.play().catch(() => undefined));
   } else {
     const unavailable = document.createElement("span");
     unavailable.textContent = "Clip unavailable";
     cell.appendChild(unavailable);
   }
   clipStrip.appendChild(cell);
+  return Promise.resolve();
+}
+
+function waitForPreview(video: HTMLVideoElement): Promise<void> {
+  if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) return Promise.resolve();
+  return new Promise((resolve) => {
+    const timeout = window.setTimeout(done, 2_000);
+    function done(): void {
+      window.clearTimeout(timeout);
+      resolve();
+    }
+    video.addEventListener("loadeddata", done, { once: true });
+    video.addEventListener("error", done, { once: true });
+  });
 }
 
 export function clearClipStrip(): void {
   for (const url of previewUrls) URL.revokeObjectURL(url);
   previewUrls = [];
   clipStrip.replaceChildren();
+  clipStrip.style.backgroundImage = "";
   clipExportStatus.textContent = "";
 }
 

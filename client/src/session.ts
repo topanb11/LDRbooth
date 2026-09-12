@@ -89,8 +89,9 @@ async function handleServerMessage(msg: ServerMessage): Promise<void> {
     }
 
     case "session-complete": {
-      finalizeSession();
-      renderClipStrip();
+      // Do not reveal the result view until images and recorded clips have
+      // decoded. This avoids a blank result on slower devices.
+      await Promise.all([finalizeSession(), renderClipStrip()]);
       showView("result");
       break;
     }
@@ -101,6 +102,7 @@ async function handleServerMessage(msg: ServerMessage): Promise<void> {
       state.photosGuest = new Array(TOTAL_SLOTS).fill(null);
       state.clipsHost = new Array(TOTAL_SLOTS).fill(null);
       state.clipsGuest = new Array(TOTAL_SLOTS).fill(null);
+      state.sessionDate = null;
       clearClipStrip();
       initGridPlaceholders();
       updateSlotProgress();
