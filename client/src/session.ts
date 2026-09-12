@@ -19,7 +19,6 @@ import {
 } from "./connection.js";
 import { applyRoleLabels, runCountdownAndCapture, updateSlotProgress, initGridPlaceholders } from "./capture.js";
 import { finalizeSession } from "./composite.js";
-import { clearClipStrip, renderClipStrip } from "./clip-composite.js";
 
 export async function enterRoom(code: string): Promise<void> {
   state.roomCode = code;
@@ -90,9 +89,8 @@ async function handleServerMessage(msg: ServerMessage): Promise<void> {
     }
 
     case "session-complete": {
-      // Do not reveal the result view until images and recorded clips have
-      // decoded. This avoids a blank result on slower devices.
-      await Promise.all([finalizeSession(), renderClipStrip()]);
+      // Wait until canvas image decoding is complete before showing the strip.
+      await finalizeSession();
       showView("result");
       break;
     }
@@ -104,10 +102,7 @@ async function handleServerMessage(msg: ServerMessage): Promise<void> {
       state.currentSlot = 0;
       state.photosHost = new Array(TOTAL_SLOTS).fill(null);
       state.photosGuest = new Array(TOTAL_SLOTS).fill(null);
-      state.clipsHost = new Array(TOTAL_SLOTS).fill(null);
-      state.clipsGuest = new Array(TOTAL_SLOTS).fill(null);
       state.sessionDate = null;
-      clearClipStrip();
       initGridPlaceholders();
       updateSlotProgress();
       btnSnap.disabled = !state.peerConnected;
