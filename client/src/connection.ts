@@ -45,7 +45,22 @@ export async function ensurePeerConnection(): Promise<RTCPeerConnection> {
   });
 
   pc.addEventListener("track", (event) => {
-    remoteVideo.srcObject = event.streams[0] ?? null;
+    // Browsers can deliver a remote track without populating `event.streams`.
+    // Build a MediaStream in that case instead of leaving the partner panel
+    // black even though the peer connection reports as connected.
+    const incoming = event.streams[0];
+    if (incoming) {
+      remoteVideo.srcObject = incoming;
+    } else {
+      const stream = remoteVideo.srcObject instanceof MediaStream ? remoteVideo.srcObject : new MediaStream();
+      if (!stream.getTracks().some((track) => track.id === event.track.id)) {
+        stream.addTrack(event.track);
+      }
+      remoteVideo.srcObject = stream;
+    }
+    // The app deliberately has no audio; muting permits autoplay broadly.
+    remoteVideo.muted = true;
+    remoteVideo.play().catch((err) => console.warn("Could not start partner video", err));
   });
 
   pc.addEventListener("connectionstatechange", () => {

@@ -18,7 +18,6 @@ export const THEMES: Theme[] = [
   { id: "film-strip", name: "Film Strip", imagePath: "/assets/themes/film-strip.svg", textColor: "#ffffff" },
   { id: "retro-film", name: "Retro Film", imagePath: "/assets/themes/retro-film.svg" },
   { id: "starry-night", name: "Starry Night", imagePath: "/assets/themes/starry-night.svg", textColor: "#ffffff" },
-  { id: "downtown", name: "Downtown", imagePath: "/assets/themes/downtown.jpeg", textColor: "#ffffff" },
 ];
 
 export const DEFAULT_THEME_ID = "default";
