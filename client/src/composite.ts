@@ -72,7 +72,7 @@ function drawTitle(ctx: CanvasRenderingContext2D, width: number): void {
   ctx.fillStyle = "#ff5da2";
   ctx.font = "bold 32px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("bubbagup", width / 2, PADDING + 32);
+  ctx.fillText("digibooth", width / 2, PADDING + 32);
 }
 
 function drawPhotoCells(ctx: CanvasRenderingContext2D): void {
@@ -85,7 +85,7 @@ function drawPhotoCells(ctx: CanvasRenderingContext2D): void {
         if (!blob) return;
         const url = URL.createObjectURL(blob);
         btnDownload.href = url;
-        btnDownload.download = `bubbagup-${new Date().toISOString().slice(0, 10)}.png`;
+        btnDownload.download = `digibooth-${new Date().toISOString().slice(0, 10)}.png`;
       }, "image/png");
     }
   };
@@ -117,7 +117,8 @@ function drawDateFooter(ctx: CanvasRenderingContext2D): void {
   if (!sessionDate) return;
   const gridBottom = PADDING + TITLE_H + CELL_H * TOTAL_SLOTS + GAP * (TOTAL_SLOTS - 1);
   const y = gridBottom + DATE_H / 2 + 8;
-  ctx.fillStyle = "#333333";
+  const theme = currentTheme();
+  ctx.fillStyle = theme.textColor ?? "#333333";
   ctx.font = "20px sans-serif";
   ctx.textAlign = "center";
   ctx.fillText(formatDate(sessionDate), finalCanvas.width / 2, y);

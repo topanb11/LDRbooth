@@ -6,17 +6,19 @@ export interface Theme {
    * `null` means no image — a plain white background.
    */
   imagePath: string | null;
+  /** Custom text color for the date stamp footer on the photo strip (defaults to dark grey #333333). */
+  textColor?: string;
 }
 
 // Preset background overlays for the final downloaded photo strip.
-// To add a new one: drop an image into client/assets/themes/ and add an
-// entry here — the dropdown and the compositor both read from this list.
 export const THEMES: Theme[] = [
   { id: "default", name: "Default (White)", imagePath: null },
   { id: "pastel-pink", name: "Pastel Pink", imagePath: "/assets/themes/pastel-pink.svg" },
+  { id: "ocean-wave", name: "Ocean Wave", imagePath: "/assets/themes/ocean-wave.svg", textColor: "#006680" },
+  { id: "film-strip", name: "Film Strip", imagePath: "/assets/themes/film-strip.svg", textColor: "#ffffff" },
   { id: "retro-film", name: "Retro Film", imagePath: "/assets/themes/retro-film.svg" },
-  { id: "starry-night", name: "Starry Night", imagePath: "/assets/themes/starry-night.svg" },
-  { id: "downtown", name: "Downtown", imagePath: "/assets/themes/downtown.jpeg" },
+  { id: "starry-night", name: "Starry Night", imagePath: "/assets/themes/starry-night.svg", textColor: "#ffffff" },
+  { id: "downtown", name: "Downtown", imagePath: "/assets/themes/downtown.jpeg", textColor: "#ffffff" },
 ];
 
 export const DEFAULT_THEME_ID = "default";

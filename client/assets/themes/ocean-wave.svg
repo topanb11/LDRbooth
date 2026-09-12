@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 1280" width="640" height="1280">
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e0f7fa"/>
+      <stop offset="40%" stop-color="#b2ebf2"/>
+      <stop offset="100%" stop-color="#80deea"/>
+    </linearGradient>
+    <linearGradient id="wave1-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4dd0e1" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#26c6da" stop-opacity="0.7"/>
+    </linearGradient>
+    <linearGradient id="wave2-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00acc1" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#00838f" stop-opacity="0.6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="640" height="1280" fill="url(#bg-grad)"/>
+
+  <!-- Top Decorative Waves -->
+  <path d="M0,0 L640,0 L640,90 Q480,130 320,80 Q160,30 0,100 Z" fill="url(#wave1-grad)"/>
+  <path d="M0,0 L640,0 L640,60 Q480,110 320,50 Q160,10 0,70 Z" fill="url(#wave2-grad)"/>
+
+  <!-- Bottom Decorative Waves -->
+  <path d="M0,1280 L640,1280 L640,1180 Q480,1230 320,1170 Q160,1110 0,1190 Z" fill="url(#wave1-grad)"/>
+  <path d="M0,1280 L640,1280 L640,1210 Q480,1250 320,1200 Q160,1150 0,1220 Z" fill="url(#wave2-grad)"/>
+</svg>

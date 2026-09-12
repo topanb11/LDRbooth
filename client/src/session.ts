@@ -31,7 +31,7 @@ export async function enterRoom(code: string): Promise<void> {
     });
   } catch {
     showView("landing");
-    landingError.textContent = "Camera access is required to use bubbagup.";
+    landingError.textContent = "Camera access is required to use digibooth.";
     return;
   }
   localVideo.srcObject = state.localStream;

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 1280" width="640" height="1280">
+  <defs>
+    <pattern id="sprocket-left" width="16" height="32" patternUnits="userSpaceOnUse">
+      <rect x="2" y="8" width="10" height="16" rx="3" ry="3" fill="#111111"/>
+    </pattern>
+    <pattern id="sprocket-right" width="16" height="32" patternUnits="userSpaceOnUse">
+      <rect x="4" y="8" width="10" height="16" rx="3" ry="3" fill="#111111"/>
+    </pattern>
+  </defs>
+
+  <!-- Dark Film Base -->
+  <rect width="640" height="1280" fill="#1a1a1a"/>
+
+  <!-- Left & Right Film Margin Bands -->
+  <rect x="0" y="0" width="18" height="1280" fill="#2d2d2d"/>
+  <rect x="622" y="0" width="18" height="1280" fill="#2d2d2d"/>
+
+  <!-- Sprocket Hole Strips -->
+  <rect x="1" y="0" width="16" height="1280" fill="url(#sprocket-left)"/>
+  <rect x="623" y="0" width="16" height="1280" fill="url(#sprocket-right)"/>
+
+  <!-- Inner Frame Line -->
+  <rect x="19" y="0" width="602" height="1280" fill="none" stroke="#333333" stroke-width="2"/>
+</svg>

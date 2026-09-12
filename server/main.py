@@ -42,7 +42,7 @@ ensure_frontend_built()
 
 TOTAL_SLOTS = 4  # 4 rows; combined with the 2 people that's a 2x4 grid
 
-app = FastAPI(title="bubbagup")
+app = FastAPI(title="digibooth")
 
 app.add_middleware(
     CORSMiddleware,
