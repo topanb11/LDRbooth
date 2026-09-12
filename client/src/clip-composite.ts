@@ -1,6 +1,6 @@
 import { state, TOTAL_SLOTS } from "./state.js";
 import { THEMES, type Theme } from "./themes.js";
-import { btnDownloadGif, btnDownloadVideo, clipExportStatus, clipStrip } from "./dom.js";
+import { btnDownloadGif, clipExportStatus, clipStrip } from "./dom.js";
 import { formatDate } from "./composite.js";
 
 const CELL_W = 300;
@@ -86,13 +86,6 @@ export function clearClipStrip(): void {
 }
 
 export function initClipExportButtons(): void {
-  btnDownloadVideo.addEventListener("click", async () => {
-    await exportWithStatus("Preparing video…", "Video ready.", async () => {
-      const { blob, extension } = await createVideoStrip();
-      downloadBlob(blob, `digibooth-clips-${dateStamp()}.${extension}`);
-    });
-  });
-
   btnDownloadGif.addEventListener("click", async () => {
     await exportWithStatus("Preparing GIF — this can take a little while…", "GIF ready.", async () => {
       const blob = await createGifStrip();
@@ -102,7 +95,6 @@ export function initClipExportButtons(): void {
 }
 
 async function exportWithStatus(start: string, done: string, work: () => Promise<void>): Promise<void> {
-  btnDownloadVideo.disabled = true;
   btnDownloadGif.disabled = true;
   clipExportStatus.textContent = start;
   try {
@@ -112,41 +104,7 @@ async function exportWithStatus(start: string, done: string, work: () => Promise
     console.error(err);
     clipExportStatus.textContent = err instanceof Error ? err.message : "Could not export the moving strip.";
   } finally {
-    btnDownloadVideo.disabled = false;
     btnDownloadGif.disabled = false;
-  }
-}
-
-async function createVideoStrip(): Promise<{ blob: Blob; extension: "webm" | "mp4" }> {
-  if (typeof MediaRecorder === "undefined") throw new Error("This browser cannot export video.");
-  const { canvas, videos, cleanup } = await createComposition();
-  const stream = canvas.captureStream(30);
-  const mime = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm", "video/mp4"].find((value) =>
-    MediaRecorder.isTypeSupported(value)
-  );
-  if (!mime) {
-    cleanup();
-    throw new Error("This browser does not support video export.");
-  }
-
-  const chunks: BlobPart[] = [];
-  const recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6_000_000 });
-  recorder.addEventListener("dataavailable", (event) => {
-    if (event.data.size) chunks.push(event.data);
-  });
-  const finished = new Promise<Blob>((resolve) => {
-    recorder.addEventListener("stop", () => resolve(new Blob(chunks, { type: mime })), { once: true });
-  });
-
-  try {
-    recorder.start();
-    await playAndDraw(videos, (elapsed) => drawStripFrame(canvas, videos, elapsed));
-    recorder.stop();
-    return { blob: await finished, extension: mime.includes("mp4") ? "mp4" : "webm" };
-  } finally {
-    if (recorder.state !== "inactive") recorder.stop();
-    stream.getTracks().forEach((track) => track.stop());
-    cleanup();
   }
 }
 
@@ -158,7 +116,7 @@ async function createGifStrip(): Promise<Blob> {
     for (let frame = 0; frame < frames; frame++) {
       const time = (frame / frames) * (CLIP_DURATION_MS / 1000);
       await Promise.all(videos.map((video) => seek(video, time)));
-      drawStripFrame(canvas, videos, frame * (CLIP_DURATION_MS / frames));
+      await drawStripFrame(canvas, videos, frame * (CLIP_DURATION_MS / frames));
       encoder.addFrame(canvas.getContext("2d")!.getImageData(0, 0, WIDTH, HEIGHT), 13);
       // Let the browser paint export status between expensive GIF frames.
       await nextFrame();
@@ -206,20 +164,6 @@ function waitForVideo(video: HTMLVideoElement): Promise<void> {
   return new Promise((resolve, reject) => {
     video.addEventListener("loadeddata", () => resolve(), { once: true });
     video.addEventListener("error", () => reject(new Error("A countdown clip could not be read.")), { once: true });
-  });
-}
-
-async function playAndDraw(videos: HTMLVideoElement[], draw: (elapsed: number) => Promise<void>): Promise<void> {
-  await Promise.all(videos.map((video) => video.play().catch(() => undefined)));
-  const started = performance.now();
-  await new Promise<void>((resolve) => {
-    const tick = async () => {
-      const elapsed = performance.now() - started;
-      await draw(Math.min(elapsed, CLIP_DURATION_MS));
-      if (elapsed >= CLIP_DURATION_MS) resolve();
-      else requestAnimationFrame(() => void tick());
-    };
-    void tick();
   });
 }
 

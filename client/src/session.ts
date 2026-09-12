@@ -15,6 +15,7 @@ import {
   ensurePeerConnection,
   createAndSendOffer,
   handleSignal,
+  resetPeerConnection,
 } from "./connection.js";
 import { applyRoleLabels, runCountdownAndCapture, updateSlotProgress, initGridPlaceholders } from "./capture.js";
 import { finalizeSession } from "./composite.js";
@@ -67,7 +68,7 @@ async function handleServerMessage(msg: ServerMessage): Promise<void> {
     }
 
     case "peer-left": {
-      state.peerConnected = false;
+      resetPeerConnection();
       statusLabel.textContent = "Your partner disconnected.";
       waitingOverlay.classList.remove("hidden");
       btnSnap.disabled = true;
@@ -97,6 +98,9 @@ async function handleServerMessage(msg: ServerMessage): Promise<void> {
     }
 
     case "session-reset": {
+      // The server resets on every new pairing, so an old peer connection is
+      // never reused for a new participant.
+      resetPeerConnection();
       state.currentSlot = 0;
       state.photosHost = new Array(TOTAL_SLOTS).fill(null);
       state.photosGuest = new Array(TOTAL_SLOTS).fill(null);
