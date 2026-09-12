@@ -4,10 +4,12 @@ import { initLandingHandlers } from "./landing.js";
 import { initSnapButton, initGridPlaceholders } from "./capture.js";
 import { initThemeDropdown } from "./composite.js";
 import { sendMessage } from "./connection.js";
+import { clearClipStrip, initClipExportButtons } from "./clip-composite.js";
 
 initLandingHandlers();
 initSnapButton();
 initThemeDropdown();
+initClipExportButtons();
 initGridPlaceholders();
 
 btnRestart.addEventListener("click", () => {
@@ -21,6 +23,7 @@ btnLeave.addEventListener("click", () => {
     state.pc?.close();
     state.localStream?.getTracks().forEach((t) => t.stop());
   } catch (_) {}
+  clearClipStrip();
   resetState();
   window.location.reload();
 });

@@ -18,6 +18,7 @@ import {
 } from "./connection.js";
 import { applyRoleLabels, runCountdownAndCapture, updateSlotProgress, initGridPlaceholders } from "./capture.js";
 import { finalizeSession } from "./composite.js";
+import { clearClipStrip, renderClipStrip } from "./clip-composite.js";
 
 export async function enterRoom(code: string): Promise<void> {
   state.roomCode = code;
@@ -89,6 +90,7 @@ async function handleServerMessage(msg: ServerMessage): Promise<void> {
 
     case "session-complete": {
       finalizeSession();
+      renderClipStrip();
       showView("result");
       break;
     }
@@ -97,6 +99,9 @@ async function handleServerMessage(msg: ServerMessage): Promise<void> {
       state.currentSlot = 0;
       state.photosHost = new Array(TOTAL_SLOTS).fill(null);
       state.photosGuest = new Array(TOTAL_SLOTS).fill(null);
+      state.clipsHost = new Array(TOTAL_SLOTS).fill(null);
+      state.clipsGuest = new Array(TOTAL_SLOTS).fill(null);
+      clearClipStrip();
       initGridPlaceholders();
       updateSlotProgress();
       btnSnap.disabled = !state.peerConnected;

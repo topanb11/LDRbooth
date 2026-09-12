@@ -41,6 +41,11 @@ export async function runCountdownAndCapture(slot: number): Promise<void> {
   btnSnap.disabled = true;
   countdownEl.classList.remove("hidden");
 
+  // Record the exact countdown interval from both views. The browser keeps the
+  // blobs locally; they are later composed into one animated strip.
+  const localRecording = startRecording(state.localStream);
+  const remoteRecording = startRecording(remoteVideo.srcObject as MediaStream | null);
+
   for (let n = COUNTDOWN_SECONDS; n >= 1; n--) {
     countdownEl.textContent = String(n);
     await sleep(1000);
@@ -49,17 +54,61 @@ export async function runCountdownAndCapture(slot: number): Promise<void> {
 
   const localFrame = captureFrame(localVideo);
   const remoteFrame = remoteVideo.srcObject ? captureFrame(remoteVideo) : null;
+  const [localClip, remoteClip] = await Promise.all([localRecording.stop(), remoteRecording.stop()]);
 
   if (state.role === "host") {
     state.photosHost[slot] = localFrame;
     state.photosGuest[slot] = remoteFrame;
+    state.clipsHost[slot] = localClip;
+    state.clipsGuest[slot] = remoteClip;
   } else {
     state.photosGuest[slot] = localFrame;
     state.photosHost[slot] = remoteFrame;
+    state.clipsGuest[slot] = localClip;
+    state.clipsHost[slot] = remoteClip;
   }
 
   renderGridThumbnail(slot);
   sendMessage({ type: "photo-ack", slot });
+}
+
+interface StreamRecording {
+  stop(): Promise<Blob | null>;
+}
+
+function startRecording(stream: MediaStream | null): StreamRecording {
+  if (!stream || typeof MediaRecorder === "undefined") return { stop: async () => null };
+
+  const supportedMime = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm", "video/mp4"].find(
+    (mime) => MediaRecorder.isTypeSupported(mime)
+  );
+  if (!supportedMime) return { stop: async () => null };
+
+  const chunks: BlobPart[] = [];
+  let recorder: MediaRecorder;
+  try {
+    recorder = new MediaRecorder(stream, { mimeType: supportedMime, videoBitsPerSecond: 2_500_000 });
+    recorder.addEventListener("dataavailable", (event) => {
+      if (event.data.size) chunks.push(event.data);
+    });
+    recorder.start();
+  } catch (err) {
+    console.warn("Could not record countdown clip", err);
+    return { stop: async () => null };
+  }
+
+  return {
+    stop: () =>
+      new Promise((resolve) => {
+        recorder.addEventListener(
+          "stop",
+          () => resolve(chunks.length ? new Blob(chunks, { type: supportedMime }) : null),
+          { once: true }
+        );
+        if (recorder.state === "inactive") resolve(null);
+        else recorder.stop();
+      }),
+  };
 }
 
 function sleep(ms: number): Promise<void> {

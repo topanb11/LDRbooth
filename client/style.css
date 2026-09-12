@@ -48,8 +48,9 @@ body {
   color: var(--muted);
 }
 
+/* IDs below set individual views to flex, so this needs to win on specificity. */
 .view.hidden {
-  display: none;
+  display: none !important;
 }
 
 /* Landing */
@@ -298,6 +299,72 @@ button:disabled {
   gap: 16px;
 }
 
+.result-strips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  width: 100%;
+  align-items: start;
+}
+
+.result-strip-panel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.result-strip-panel h3 {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.clip-strip {
+  width: 100%;
+  aspect-ratio: 652 / 1052;
+  padding: 12px;
+  border-radius: 14px;
+  background: #fff;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(4, 1fr);
+  gap: 6px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.clip-cell {
+  overflow: hidden;
+  background: #eee;
+}
+
+.clip-cell video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.clip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.clip-actions button {
+  padding: 9px 14px;
+  font-size: 0.88rem;
+}
+
+.clip-export-status {
+  min-height: 1.2em;
+  margin: 0;
+  text-align: center;
+}
+
 .theme-picker {
   display: flex;
   align-items: center;
@@ -323,6 +390,10 @@ button:disabled {
   height: auto;
   border-radius: 14px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.result-strip-panel #final-canvas {
+  width: 100%;
 }
 
 .result-actions {
@@ -355,4 +426,11 @@ button:disabled {
 
 #btn-restart:hover {
   background: #3e335e;
+}
+
+@media (max-width: 640px) {
+  .result-strips {
+    grid-template-columns: 1fr;
+    max-width: 430px;
+  }
 }

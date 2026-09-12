@@ -76,11 +76,23 @@
         <label for="theme-select">Background theme</label>
         <select id="theme-select"></select>
       </div>
-      <canvas id="final-canvas" width="640" height="1280"></canvas>
-      <div class="result-actions">
-        <a id="btn-download" class="primary" download="digibooth.png">Download</a>
-        <button id="btn-restart">Start Over</button>
+      <div class="result-strips">
+        <section class="result-strip-panel">
+          <h3>Moving strip</h3>
+          <div id="clip-strip" class="clip-strip" aria-label="Three-second countdown clips"></div>
+          <div class="clip-actions">
+            <button id="btn-download-video" class="primary">Download Video</button>
+            <button id="btn-download-gif">Download GIF</button>
+          </div>
+          <p id="clip-export-status" class="hint" role="status"></p>
+        </section>
+        <section class="result-strip-panel">
+          <h3>Photo strip</h3>
+          <canvas id="final-canvas" width="640" height="1280"></canvas>
+          <a id="btn-download" class="primary" download="digibooth.png">Download PNG</a>
+        </section>
       </div>
+      <button id="btn-restart">Start Over</button>
     </section>
   </div>
 

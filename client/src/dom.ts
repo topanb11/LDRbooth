@@ -32,6 +32,10 @@ export const gridRight = byId<HTMLElement>("grid-right");
 // Result view
 export const viewResult = byId<HTMLElement>("view-result");
 export const finalCanvas = byId<HTMLCanvasElement>("final-canvas");
+export const clipStrip = byId<HTMLElement>("clip-strip");
 export const btnDownload = byId<HTMLAnchorElement>("btn-download");
+export const btnDownloadVideo = byId<HTMLButtonElement>("btn-download-video");
+export const btnDownloadGif = byId<HTMLButtonElement>("btn-download-gif");
+export const clipExportStatus = byId<HTMLParagraphElement>("clip-export-status");
 export const btnRestart = byId<HTMLButtonElement>("btn-restart");
 export const themeSelect = byId<HTMLSelectElement>("theme-select");

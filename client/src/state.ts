@@ -17,6 +17,10 @@ export interface AppState {
   // guest right) is identical no matter which browser renders it.
   photosHost: (string | null)[];
   photosGuest: (string | null)[];
+  // Each blob contains the three seconds immediately before its matching still.
+  // These never leave the browser.
+  clipsHost: (Blob | null)[];
+  clipsGuest: (Blob | null)[];
   selectedThemeId: string;
 }
 
@@ -31,6 +35,8 @@ function freshState(): AppState {
     peerConnected: false,
     photosHost: new Array(TOTAL_SLOTS).fill(null),
     photosGuest: new Array(TOTAL_SLOTS).fill(null),
+    clipsHost: new Array(TOTAL_SLOTS).fill(null),
+    clipsGuest: new Array(TOTAL_SLOTS).fill(null),
     selectedThemeId: DEFAULT_THEME_ID,
   };
 }
