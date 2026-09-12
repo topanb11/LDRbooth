@@ -17,8 +17,6 @@ export interface AppState {
   // guest right) is identical no matter which browser renders it.
   photosHost: (string | null)[];
   photosGuest: (string | null)[];
-  /** Timestamp stamped on the completed photo strip. */
-  sessionDate: Date | null;
   selectedThemeId: string;
 }
 
@@ -33,7 +31,6 @@ function freshState(): AppState {
     peerConnected: false,
     photosHost: new Array(TOTAL_SLOTS).fill(null),
     photosGuest: new Array(TOTAL_SLOTS).fill(null),
-    sessionDate: null,
     selectedThemeId: DEFAULT_THEME_ID,
   };
 }

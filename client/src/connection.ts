@@ -2,11 +2,7 @@ import type { ClientMessage, ServerMessage, SignalPayload } from "./types.js";
 import { state, ICE_SERVERS, TOTAL_SLOTS } from "./state.js";
 import { remoteVideo, statusLabel, btnSnap } from "./dom.js";
 
-let pendingIceCandidates: RTCIceCandidateInit[] = [];
-
 export function connectSocket(code: string, onMessage: (msg: ServerMessage) => void): void {
-  // A reconnect must not leave an old socket delivering stale signaling.
-  state.ws?.close();
   const protocol = location.protocol === "https:" ? "wss:" : "ws:";
   const ws = new WebSocket(`${protocol}//${location.host}/ws/${code}`);
   state.ws = ws;
@@ -17,24 +13,8 @@ export function connectSocket(code: string, onMessage: (msg: ServerMessage) => v
   });
 
   ws.addEventListener("close", () => {
-    if (state.ws === ws) {
-      state.ws = null;
-      statusLabel.textContent = "Disconnected.";
-    }
+    statusLabel.textContent = "Disconnected.";
   });
-}
-
-/** Dispose peer-specific state while preserving the user's local camera stream. */
-export function resetPeerConnection(): void {
-  pendingIceCandidates = [];
-  if (state.pc) {
-    state.pc.onicecandidate = null;
-    state.pc.ontrack = null;
-    state.pc.close();
-  }
-  state.pc = null;
-  state.peerConnected = false;
-  remoteVideo.srcObject = null;
 }
 
 export function sendMessage(msg: ClientMessage): void {
@@ -98,36 +78,16 @@ export async function handleSignal(data: SignalPayload): Promise<void> {
 
   if (data.kind === "offer" && data.sdp) {
     await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
-    await addPendingIceCandidates(pc);
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
     sendMessage({ type: "signal", data: { kind: "answer", sdp: answer } });
   } else if (data.kind === "answer" && data.sdp) {
     await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
-    await addPendingIceCandidates(pc);
   } else if (data.kind === "ice-candidate" && data.candidate) {
-    // ICE candidates can arrive before the offer/answer. Queue them instead
-    // of rejecting the connection on reconnects or slower networks.
-    if (!pc.remoteDescription) {
-      pendingIceCandidates.push(data.candidate);
-      return;
-    }
     try {
       await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
     } catch (err) {
       console.warn("Failed to add ICE candidate", err);
-    }
-  }
-}
-
-async function addPendingIceCandidates(pc: RTCPeerConnection): Promise<void> {
-  const candidates = pendingIceCandidates;
-  pendingIceCandidates = [];
-  for (const candidate of candidates) {
-    try {
-      await pc.addIceCandidate(new RTCIceCandidate(candidate));
-    } catch (err) {
-      console.warn("Failed to add queued ICE candidate", err);
     }
   }
 }

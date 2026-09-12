@@ -9,26 +9,26 @@ const PADDING = 20;
 const TITLE_H = 60;
 const DATE_H = 40;
 
-let photoDownloadUrl: string | null = null;
+let sessionDate: Date | null = null;
 
 function currentTheme(): Theme {
   return THEMES.find((t) => t.id === state.selectedThemeId) ?? THEMES[0];
 }
 
-export function formatDate(d: Date): string {
+function formatDate(d: Date): string {
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
   return `${d.getFullYear()}.${mm}.${dd}`;
 }
 
-/** Draw the final strip completely before the result view is displayed. */
-export async function finalizeSession(): Promise<void> {
-  state.sessionDate = new Date();
-  await renderFinalComposite();
+/** Call once when the session finishes: stamps today's date on the strip and draws it. */
+export function finalizeSession(): void {
+  sessionDate = new Date();
+  renderFinalComposite();
 }
 
-/** Safely redraw the final strip when the selected theme changes. */
-export async function renderFinalComposite(): Promise<void> {
+/** Redraws the final strip using the currently selected theme. */
+export function renderFinalComposite(): void {
   const width = PADDING * 2 + CELL_W * 2 + GAP;
   const height = PADDING * 2 + CELL_H * TOTAL_SLOTS + GAP * (TOTAL_SLOTS - 1) + TITLE_H + DATE_H;
   finalCanvas.width = width;
@@ -36,93 +36,100 @@ export async function renderFinalComposite(): Promise<void> {
   const ctx = finalCanvas.getContext("2d");
   if (!ctx) return;
 
+  const drawForeground = () => {
+    drawTitle(ctx, width);
+    drawPhotoCells(ctx);
+  };
   const theme = currentTheme();
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, width, height);
   if (theme.imagePath) {
-    try {
-      const background = await loadImage(theme.imagePath);
+    const background = new Image();
+    background.onload = () => {
       ctx.drawImage(background, 0, 0, width, height);
-    } catch {
-      // The plain white base above is a usable fallback if a theme asset fails.
-    }
+      drawForeground();
+    };
+    background.onerror = () => {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+      drawForeground();
+    };
+    background.src = theme.imagePath;
+  } else {
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, width, height);
+    drawForeground();
   }
+}
 
+function drawTitle(ctx: CanvasRenderingContext2D, width: number): void {
   ctx.fillStyle = "#ff5da2";
   ctx.font = "bold 32px sans-serif";
   ctx.textAlign = "center";
   ctx.fillText("digibooth", width / 2, PADDING + 32);
-  await drawPhotoCells(ctx);
-  drawDateFooter(ctx);
-  await updateDownloadLink();
 }
 
-async function drawPhotoCells(ctx: CanvasRenderingContext2D): Promise<void> {
-  const jobs: Promise<void>[] = [];
+function drawPhotoCells(ctx: CanvasRenderingContext2D): void {
+  let pending = TOTAL_SLOTS * 2;
+  const done = () => {
+    pending -= 1;
+    if (pending === 0) {
+      drawDateFooter(ctx);
+      finalCanvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        btnDownload.href = url;
+        btnDownload.download = `digibooth-${new Date().toISOString().slice(0, 10)}.png`;
+      }, "image/png");
+    }
+  };
+
+  const drawCell = (url: string | null, col: number, row: number) => {
+    const x = PADDING + col * (CELL_W + GAP);
+    const y = PADDING + TITLE_H + row * (CELL_H + GAP);
+    ctx.fillStyle = "#eeeeee";
+    ctx.fillRect(x, y, CELL_W, CELL_H);
+    if (!url) {
+      done();
+      return;
+    }
+    const image = new Image();
+    image.onload = () => {
+      drawCover(ctx, image, x, y, CELL_W, CELL_H);
+      done();
+    };
+    image.src = url;
+  };
+
   for (let row = 0; row < TOTAL_SLOTS; row++) {
-    jobs.push(drawCell(ctx, state.photosHost[row], 0, row));
-    jobs.push(drawCell(ctx, state.photosGuest[row], 1, row));
-  }
-  await Promise.all(jobs);
-}
-
-async function drawCell(ctx: CanvasRenderingContext2D, url: string | null, col: number, row: number): Promise<void> {
-  const x = PADDING + col * (CELL_W + GAP);
-  const y = PADDING + TITLE_H + row * (CELL_H + GAP);
-  ctx.fillStyle = "#eeeeee";
-  ctx.fillRect(x, y, CELL_W, CELL_H);
-  if (!url) return;
-  try {
-    const image = await loadImage(url);
-    drawCover(ctx, image, x, y, CELL_W, CELL_H);
-  } catch {
-    // Preserve the placeholder rather than leaving the whole strip unrendered.
+    drawCell(state.photosHost[row], 0, row);
+    drawCell(state.photosGuest[row], 1, row);
   }
 }
 
 function drawDateFooter(ctx: CanvasRenderingContext2D): void {
-  if (!state.sessionDate) return;
+  if (!sessionDate) return;
   const gridBottom = PADDING + TITLE_H + CELL_H * TOTAL_SLOTS + GAP * (TOTAL_SLOTS - 1);
   const theme = currentTheme();
   ctx.fillStyle = theme.textColor ?? "#333333";
   ctx.font = "20px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(formatDate(state.sessionDate), finalCanvas.width / 2, gridBottom + DATE_H / 2 + 8);
+  ctx.fillText(formatDate(sessionDate), finalCanvas.width / 2, gridBottom + DATE_H / 2 + 8);
 }
 
-async function updateDownloadLink(): Promise<void> {
-  const blob = await new Promise<Blob | null>((resolve) => finalCanvas.toBlob(resolve, "image/png"));
-  if (!blob) return;
-  if (photoDownloadUrl) URL.revokeObjectURL(photoDownloadUrl);
-  photoDownloadUrl = URL.createObjectURL(blob);
-  btnDownload.href = photoDownloadUrl;
-  btnDownload.download = `digibooth-${new Date().toISOString().slice(0, 10)}.png`;
-}
-
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error("Image could not be loaded."));
-    image.src = src;
-  });
-}
-
-function drawCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number): void {
-  const imgRatio = img.width / img.height;
+function drawCover(ctx: CanvasRenderingContext2D, image: HTMLImageElement, x: number, y: number, w: number, h: number): void {
+  const imageRatio = image.width / image.height;
   const targetRatio = w / h;
   let sx = 0;
   let sy = 0;
-  let sw = img.width;
-  let sh = img.height;
-  if (imgRatio > targetRatio) {
-    sw = img.height * targetRatio;
-    sx = (img.width - sw) / 2;
+  let sw = image.width;
+  let sh = image.height;
+  if (imageRatio > targetRatio) {
+    sw = image.height * targetRatio;
+    sx = (image.width - sw) / 2;
   } else {
-    sh = img.width / targetRatio;
-    sy = (img.height - sh) / 2;
+    sh = image.width / targetRatio;
+    sy = (image.height - sh) / 2;
   }
-  ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+  ctx.drawImage(image, sx, sy, sw, sh, x, y, w, h);
 }
 
 export function initThemeDropdown(): void {
@@ -136,6 +143,6 @@ export function initThemeDropdown(): void {
   themeSelect.value = state.selectedThemeId;
   themeSelect.addEventListener("change", () => {
     state.selectedThemeId = themeSelect.value;
-    void renderFinalComposite();
+    renderFinalComposite();
   });
 }

@@ -135,13 +135,6 @@ async def room_socket(websocket: WebSocket, code: str) -> None:
     await send_json(websocket, {"type": "role", "role": role})
 
     if other_role in room.connections:
-        # Media stays in each browser, so a newly paired participant cannot
-        # reconstruct photos from a prior connection. Start every pairing with
-        # clean synchronized state instead of leaving either client stuck.
-        room.current_slot = 0
-        room.countdown_active = False
-        room.acks_for_slot = set()
-        await broadcast(room, {"type": "session-reset"})
         await send_json(websocket, {"type": "peer-joined"})
         await send_json(room.connections[other_role], {"type": "peer-joined"})
 
@@ -197,8 +190,6 @@ async def room_socket(websocket: WebSocket, code: str) -> None:
             del room.connections[role]
         remaining_ws = room.connections.get(other_role)
         if remaining_ws is not None:
-            room.countdown_active = False
-            room.acks_for_slot = set()
             try:
                 await send_json(remaining_ws, {"type": "peer-left"})
             except Exception:
