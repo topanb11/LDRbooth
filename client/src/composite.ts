@@ -61,7 +61,7 @@ export function renderFinalComposite(): void {
 }
 
 function drawTitle(ctx: CanvasRenderingContext2D, width: number): void {
-  ctx.fillStyle = "#ff5da2";
+  ctx.fillStyle = currentTheme().titleColor ?? "#ff5da2";
   ctx.font = "bold 32px sans-serif";
   ctx.textAlign = "center";
   ctx.fillText("digibooth", width / 2, PADDING + 32);
